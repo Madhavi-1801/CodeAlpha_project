@@ -1,160 +1,187 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct Bank {
-    int accNo;
+struct Student {
+    int rollNo;
     char name[50];
-    float balance;
+    float marks;
 };
 
-void createAccount();
-void deposit();
-void withdraw();
-void balanceEnquiry();
+void addStudent();
+void deleteStudent();
+void updateStudent();
+void searchStudent();
+void displayStudents();
 
 int main() {
     int choice;
 
     do {
-        printf("\n===== BANK MANAGEMENT SYSTEM =====");
-        printf("\n1. Create Account");
-        printf("\n2. Deposit");
-        printf("\n3. Withdraw");
-        printf("\n4. Balance Enquiry");
-        printf("\n5. Exit");
+        printf("\n===== STUDENT MANAGEMENT SYSTEM =====");
+        printf("\n1. Add Student");
+        printf("\n2. Delete Student");
+        printf("\n3. Update Student");
+        printf("\n4. Search Student");
+        printf("\n5. Display All Students");
+        printf("\n6. Exit");
         printf("\nEnter your choice: ");
         scanf("%d", &choice);
 
         switch (choice) {
-            case 1: createAccount(); break;
-            case 2: deposit(); break;
-            case 3: withdraw(); break;
-            case 4: balanceEnquiry(); break;
-            case 5: printf("\nThank you for using the Bank System!\n"); break;
-            default: printf("\nInvalid choice!\n");
+            case 1: addStudent(); break;
+            case 2: deleteStudent(); break;
+            case 3: updateStudent(); break;
+            case 4: searchStudent(); break;
+            case 5: displayStudents(); break;
+            case 6: printf("\nExiting Program...\n"); break;
+            default: printf("\nInvalid Choice!\n");
         }
-    } while (choice != 5);
+    } while (choice != 6);
 
     return 0;
 }
 
-void createAccount() {
-    struct Bank b;
-    FILE *fp = fopen("bank.dat", "ab");
+void addStudent() {
+    struct Student s;
+    FILE *fp = fopen("student.dat", "ab");
 
-    if (!fp) {
-        printf("\nFile cannot be opened!");
+    if (fp == NULL) {
+        printf("\nFile Error!");
         return;
     }
 
-    printf("\nEnter Account Number: ");
-    scanf("%d", &b.accNo);
+    printf("\nEnter Roll Number: ");
+    scanf("%d", &s.rollNo);
     printf("Enter Name: ");
-    scanf(" %[^\n]", b.name);
-    printf("Enter Initial Balance: ");
-    scanf("%f", &b.balance);
+    scanf(" %[^\n]", s.name);  // allow spaces
+    printf("Enter Marks: ");
+    scanf("%f", &s.marks);
 
-    fwrite(&b, sizeof(b), 1, fp);
+    fwrite(&s, sizeof(s), 1, fp);
     fclose(fp);
 
-    printf("\nAccount Created Successfully!\n");
+    printf("\nStudent Record Added Successfully!");
 }
 
-void deposit() {
-    struct Bank b;
-    int acc, found = 0;
-    float amount;
-    FILE *fp = fopen("bank.dat", "rb+");
+void deleteStudent() {
+    struct Student s;
+    int roll, found = 0;
+    FILE *fp = fopen("student.dat", "rb");
+    FILE *temp = fopen("temp.dat", "wb");
 
-    if (!fp) {
-        printf("\nNo accounts found!\n");
+    if (fp == NULL) {
+        printf("\nNo records found!\n");
+        fclose(temp);
         return;
     }
 
-    printf("\nEnter Account Number: ");
-    scanf("%d", &acc);
+    printf("\nEnter Roll Number to Delete: ");
+    scanf("%d", &roll);
 
-    while (fread(&b, sizeof(b), 1, fp)) {
-        if (b.accNo == acc) {
-            printf("Enter Amount to Deposit: ");
-            scanf("%f", &amount);
-            b.balance += amount;
+    while (fread(&s, sizeof(s), 1, fp)) {
+        if (s.rollNo != roll) {
+            fwrite(&s, sizeof(s), 1, temp);
+        } else {
+            found = 1;
+        }
+    }
 
-            fseek(fp, -sizeof(b), SEEK_CUR);
-            fwrite(&b, sizeof(b), 1, fp);
+    fclose(fp);
+    fclose(temp);
 
-            printf("\nAmount Deposited Successfully! New Balance: %.2f\n", b.balance);
+    remove("student.dat");
+    rename("temp.dat", "student.dat");
+
+    if (found)
+        printf("\nStudent Record Deleted Successfully!");
+    else
+        printf("\nStudent Record Not Found!");
+}
+
+void updateStudent() {
+    struct Student s;
+    int roll, found = 0;
+    FILE *fp = fopen("student.dat", "rb+");
+
+    if (fp == NULL) {
+        printf("\nNo records found!\n");
+        return;
+    }
+
+    printf("\nEnter Roll Number to Update: ");
+    scanf("%d", &roll);
+
+    while (fread(&s, sizeof(s), 1, fp)) {
+        if (s.rollNo == roll) {
+            printf("Enter New Name: ");
+            scanf(" %[^\n]", s.name);
+            printf("Enter New Marks: ");
+            scanf("%f", &s.marks);
+
+            fseek(fp, -sizeof(s), SEEK_CUR);
+            fwrite(&s, sizeof(s), 1, fp);
             found = 1;
             break;
         }
     }
+
     fclose(fp);
 
-    if (!found)
-        printf("\nAccount Not Found!\n");
+    if (found)
+        printf("\nStudent Record Updated Successfully!");
+    else
+        printf("\nStudent Record Not Found!");
 }
 
-void withdraw() {
-    struct Bank b;
-    int acc, found = 0;
-    float amount;
-    FILE *fp = fopen("bank.dat", "rb+");
+void searchStudent() {
+    struct Student s;
+    int roll, found = 0;
+    FILE *fp = fopen("student.dat", "rb");
 
-    if (!fp) {
-        printf("\nNo accounts found!\n");
+    if (fp == NULL) {
+        printf("\nNo records found!\n");
         return;
     }
 
-    printf("\nEnter Account Number: ");
-    scanf("%d", &acc);
+    printf("\nEnter Roll Number to Search: ");
+    scanf("%d", &roll);
 
-    while (fread(&b, sizeof(b), 1, fp)) {
-        if (b.accNo == acc) {
-            printf("Enter Amount to Withdraw: ");
-            scanf("%f", &amount);
-
-            if (amount > b.balance) {
-                printf("\nInsufficient Balance! Current Balance: %.2f\n", b.balance);
-            } else {
-                b.balance -= amount;
-                fseek(fp, -sizeof(b), SEEK_CUR);
-                fwrite(&b, sizeof(b), 1, fp);
-                printf("\nWithdrawal Successful! Remaining Balance: %.2f\n", b.balance);
-            }
+    while (fread(&s, sizeof(s), 1, fp)) {
+        if (s.rollNo == roll) {
+            printf("\nRoll No: %d", s.rollNo);
+            printf("\nName: %s", s.name);
+            printf("\nMarks: %.2f", s.marks);
             found = 1;
             break;
         }
     }
+
     fclose(fp);
 
     if (!found)
-        printf("\nAccount Not Found!\n");
+        printf("\nStudent Record Not Found!");
 }
 
-void balanceEnquiry() {
-    struct Bank b;
-    int acc, found = 0;
-    FILE *fp = fopen("bank.dat", "rb");
+void displayStudents() {
+    struct Student s;
+    FILE *fp = fopen("student.dat", "rb");
 
-    if (!fp) {
-        printf("\nNo accounts found!\n");
+    if (fp == NULL) {
+        printf("\nNo Records Found!");
         return;
     }
 
-    printf("\nEnter Account Number: ");
-    scanf("%d", &acc);
-
-    while (fread(&b, sizeof(b), 1, fp)) {
-        if (b.accNo == acc) {
-            printf("\nAccount Number: %d", b.accNo);
-            printf("\nName: %s", b.name);
-            printf("\nBalance: %.2f\n", b.balance);
-            found = 1;
-            break;
-        }
+    printf("\n===== STUDENT RECORDS =====\n");
+    int count = 0;
+    while (fread(&s, sizeof(s), 1, fp)) {
+        printf("\nRoll No: %d", s.rollNo);
+        printf("\nName: %s", s.name);
+        printf("\nMarks: %.2f\n", s.marks);
+        count++;
     }
-    fclose(fp);
 
-    if (!found)
-        printf("\nAccount Not Found!\n");
+    if (count == 0)
+        printf("\nNo Records Found!");
+
+    fclose(fp);
 }
