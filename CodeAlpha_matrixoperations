@@ -1,0 +1,100 @@
+#include <stdio.h>
+
+// Function to input a matrix
+void inputMatrix(int mat[10][10], int r, int c) {
+    for (int i = 0; i < r; i++) {
+        for (int j = 0; j < c; j++) {
+            scanf("%d", &mat[i][j]);
+        }
+    }
+}
+
+// Function to display a matrix
+void displayMatrix(int mat[10][10], int r, int c) {
+    for (int i = 0; i < r; i++) {
+        for (int j = 0; j < c; j++) {
+            printf("%d ", mat[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+// Matrix Addition
+void addMatrix(int a[10][10], int b[10][10], int r, int c) {
+    int sum[10][10];
+
+    for (int i = 0; i < r; i++) {
+        for (int j = 0; j < c; j++) {
+            sum[i][j] = a[i][j] + b[i][j];
+        }
+    }
+
+    printf("\nMatrix Addition Result:\n");
+    displayMatrix(sum, r, c);
+}
+
+// Matrix Multiplication
+void multiplyMatrix(int a[10][10], int b[10][10], int r1, int c1, int c2) {
+    int mul[10][10] = {0};
+
+    for (int i = 0; i < r1; i++) {
+        for (int j = 0; j < c2; j++) {
+            for (int k = 0; k < c1; k++) {
+                mul[i][j] += a[i][k] * b[k][j];
+            }
+        }
+    }
+
+    printf("\nMatrix Multiplication Result:\n");
+    displayMatrix(mul, r1, c2);
+}
+
+// Matrix Transpose
+void transposeMatrix(int mat[10][10], int r, int c) {
+    int trans[10][10];
+
+    for (int i = 0; i < r; i++) {
+        for (int j = 0; j < c; j++) {
+            trans[j][i] = mat[i][j];
+        }
+    }
+
+    printf("\nTranspose of First Matrix:\n");
+    displayMatrix(trans, c, r);
+}
+
+int main() {
+    int a[10][10], b[10][10];
+    int r1, c1, r2, c2;
+
+    printf("Enter rows and columns of first matrix: ");
+    scanf("%d %d", &r1, &c1);
+
+    printf("Enter elements of first matrix:\n");
+    inputMatrix(a, r1, c1);
+
+    printf("Enter rows and columns of second matrix: ");
+    scanf("%d %d", &r2, &c2);
+
+    printf("Enter elements of second matrix:\n");
+    inputMatrix(b, r2, c2);
+
+    // Matrix Addition
+    if (r1 == r2 && c1 == c2) {
+        addMatrix(a, b, r1, c1);
+    } else {
+        printf("\nMatrix Addition not possible.\n");
+    }
+
+    // Matrix Multiplication
+    if (c1 == r2) {
+        multiplyMatrix(a, b, r1, c1, c2);
+    } else {
+        printf("\nMatrix Multiplication not possible.\n");
+    }
+
+    // Transpose of first matrix
+    transposeMatrix(a, r1, c1);
+
+    return 0;
+}
